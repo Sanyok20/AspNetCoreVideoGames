@@ -1,46 +1,24 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using VideoGames.DAL;
 using VideoGames.DAL.Entities;
 
-namespace VideoGames.DAL.Repositories;
-
-public class DeveloperRepository
+namespace VideoGames.DAL.Repositories
 {
-    private readonly AppDbContext _context;
-
-    public DeveloperRepository(AppDbContext context)
+    public class DeveloperRepository : GenericRepository<Developer>
     {
-        _context = context;
-    }
+        private readonly AppDbContext _context;
 
-    public async Task<List<Developer>> GetAll()
-    {
-        return await _context.Developers.ToListAsync();
-    }
-
-    public async Task<Developer?> GetById(int id)
-    {
-        return await _context.Developers.FindAsync(id);
-    }
-
-    public async Task Create(Developer developer)
-    {
-        await _context.Developers.AddAsync(developer);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task Update(Developer developer)
-    {
-        _context.Developers.Update(developer);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task Delete(int id)
-    {
-        var developer = await _context.Developers.FindAsync(id);
-        if (developer != null)
+        public DeveloperRepository(AppDbContext context)
+            : base(context)
         {
-            _context.Developers.Remove(developer);
-            await _context.SaveChangesAsync();
+            _context = context;
+        }
+
+        public IQueryable<Developer> Developers => GetAll();
+
+        public async Task<bool> IsExistAsync(int id, CancellationToken ct = default)
+        {
+            return await Developers.AnyAsync(d => d.Id == id, ct);
         }
     }
 }

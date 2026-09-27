@@ -1,90 +1,82 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using VideoGames.DAL.Entities;
-using VideoGames.DAL.Repositories;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
+using VideoGames.BLL.Dtos.Developer;
+using VideoGames.BLL.Services;
+using VideoGames.Extensions;
 
 namespace VideoGames.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/developer")]
 public class DeveloperController : ControllerBase
 {
-    private readonly DeveloperRepository _developerRepository;
+    private readonly DeveloperService _developerService;
+    private readonly IValidator<CreateDeveloperDto> _validatorCreate;
+    private readonly IValidator<UpdateDeveloperDto> _validatorUpdate;
 
-    public DeveloperController(DeveloperRepository developerRepository)
+    public DeveloperController(
+        DeveloperService developerService,
+        IValidator<CreateDeveloperDto> validatorCreate,
+        IValidator<UpdateDeveloperDto> validatorUpdate)
     {
-        _developerRepository = developerRepository;
+        _developerService = developerService;
+        _validatorCreate = validatorCreate;
+        _validatorUpdate = validatorUpdate;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DeveloperDto>>> GetAll()
+    public async Task<IActionResult> GetAll(CancellationToken ct = default)
     {
-        var developers = await _developerRepository.GetAll();
-        var dtos = developers.Select(d => new DeveloperDto
-        {
-            Id = d.Id,
-            Name = d.Name
-        });
-
-        return Ok(dtos);
+        var response = await _developerService.GetAllAsync(ct);
+        return this.GetHttpResponse(response);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<DeveloperDto>> GetById(int id)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id, CancellationToken ct = default)
     {
-        var developer = await _developerRepository.GetById(id);
-        if (developer == null)
-        {
-            return NotFound($"Розробника з ID {id} не знайдено.");
-        }
-
-        var dto = new DeveloperDto
-        {
-            Id = developer.Id,
-            Name = developer.Name
-        };
-
-        return Ok(dto);
+        var response = await _developerService.GetByIdAsync(id, ct);
+        return this.GetHttpResponse(response);
     }
 
     [HttpPost]
-    public async Task<ActionResult<DeveloperDto>> Create([FromBody] DeveloperDto dto)
+    public async Task<IActionResult> Create(
+        [FromBody] CreateDeveloperDto dto,
+        CancellationToken ct = default)
     {
-        var developer = new Developer
+        var validationResult = await _validatorCreate.ValidateAsync(dto, ct);
+
+        if (!validationResult.IsValid)
         {
-            Name = dto.Name!
-        };
-
-        await _developerRepository.Create(developer);
-
-        dto.Id = developer.Id;
-        return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
-    }
-
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] DeveloperDto dto)
-    {
-        var existingDeveloper = await _developerRepository.GetById(id);
-        if (existingDeveloper == null)
-        {
-            return NotFound($"Розробника з ID {id} не знайдено.");
+            return this.ValidationResponse(validationResult);
         }
 
-        existingDeveloper.Name = dto.Name!;
+        var response = await _developerService.CreateAsync(dto, ct);
 
-        await _developerRepository.Update(existingDeveloper);
-        return NoContent();
+        return this.GetHttpResponse(response);
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    [HttpPut]
+    public async Task<IActionResult> Update(
+        [FromBody] UpdateDeveloperDto dto,
+        CancellationToken ct = default)
     {
-        var existingDeveloper = await _developerRepository.GetById(id);
-        if (existingDeveloper == null)
+        var validationResult = await _validatorUpdate.ValidateAsync(dto, ct);
+
+        if (!validationResult.IsValid)
         {
-            return NotFound($"Розробника з ID {id} не знайдено.");
+            return this.ValidationResponse(validationResult);
         }
 
-        await _developerRepository.Delete(id);
-        return NoContent();
+        var response = await _developerService.UpdateAsync(dto, ct);
+
+        return this.GetHttpResponse(response);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
+    {
+        var response = await _developerService.DeleteAsync(id, ct);
+
+        return this.GetHttpResponse(response);
     }
 }

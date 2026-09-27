@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VideoGames.DAL.Entities;
 using System;
-using VideoGames.DAL.Entities;
 
 namespace VideoGames.DAL.Initializer
 {

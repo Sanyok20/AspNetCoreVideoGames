@@ -1,16 +1,17 @@
-﻿using VideoGames.DAL.Entities;
+﻿using Microsoft.AspNetCore.Http;
 
-namespace VideoGames
+namespace VideoGames.BLL.Dtos.Game
 {
-    public class GameDto
+    public class UpdateGameDto
     {
         public int Id { get; set; }
-        public required string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public DateTime ReleaseDate { get; set; }
         public string? Description { get; set; }
+        public IFormFile? Image { get; set; }
         public string? Genre { get; set; }
         public decimal Price { get; set; }
         public float Rating { get; set; }
-        public string? Developer { get; set; }
+        public int DeveloperId { get; set; }
     }
 }

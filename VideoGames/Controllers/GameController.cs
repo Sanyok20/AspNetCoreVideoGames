@@ -1,93 +1,79 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using VideoGames.DAL.Entities;
-using VideoGames.DAL.Repositories;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
+using VideoGames.BLL.Dtos.Game;
+using VideoGames.BLL.Dtos.Pagination;
+using VideoGames.BLL.Services;
+using VideoGames.Extensions;
+using VideoGames.Settings;
 
-namespace VideoGames.Controllers
+namespace SPR521_VideoGames.Controllers
 {
     [ApiController]
     [Route("api/game")]
     public class GameController : ControllerBase
     {
-        private readonly GameRepository _gameRepository;
+        private readonly GameService _gameService;
+        private readonly string _imagesFolder;
+        private readonly IValidator<CreateGameDto> _valiatorCreate;
+        private readonly IValidator<UpdateGameDto> _valiatorUpdate;
 
-        public GameController(GameRepository gameRepository)
+        public GameController(GameService gameService, IWebHostEnvironment webHostEnvironment, IValidator<CreateGameDto> valiator, IValidator<UpdateGameDto> valiatorUpdate)
         {
-            _gameRepository = gameRepository;
+            _gameService = gameService;
+            _valiatorCreate = valiator;
+            _valiatorUpdate = valiatorUpdate;
+
+            string root = webHostEnvironment.ContentRootPath;
+            _imagesFolder = Path.Combine(root, FileSettings.Games);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        public async Task<IActionResult> GetAsync([FromQuery] PaginationRequestDto dto, CancellationToken ct = default)
         {
-            int total = await _gameRepository.GetAll().CountAsync();
-            int pages = (int)Math.Ceiling((double)total / pageSize);
-
-            page = page < 1 || page > pages ? 1 : page;
-            pageSize = pageSize < 1 ? 20 : pageSize;
-
-            var games = await _gameRepository
-                .GetAll()
-                .Include(g => g.Developer)
-                .OrderBy(g => g.Id)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync(ct);
-
-            var dtos = games.Select(g => new GameDto
-            {
-                Id = g.Id,
-                Description = g.Description,
-                Rating = g.Rating,
-                Developer = g.Developer!.Name,
-                Genre = g.Genre,
-                Name = g.Name,
-                Price = g.Price,
-                ReleaseDate = g.ReleaseDate
-            });
-
-            return Ok(dtos);
+            var response = await _gameService.GetAllAsync(dto, ct);
+            return this.GetHttpResponse(response);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync([FromRoute] int id, CancellationToken ct = default)
         {
-            var game = await _gameRepository.GetByIdAsync(id, ct);
-
-            if (game != null)
-            {
-                return Ok(game);
-            }
-            else
-            {
-                return NotFound($"Не вдалося знайти книгу з id '{id}'");
-            }
+            var response = await _gameService.GetByIdAsync(id, ct);
+            return this.GetHttpResponse(response);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAsync([FromBody] Game game, CancellationToken ct = default)
+        public async Task<IActionResult> CreateAsync([FromForm] CreateGameDto dto, CancellationToken ct = default)
         {
-            game.ReleaseDate = game.ReleaseDate.ToUniversalTime();
-            await _gameRepository.CreateAsync(game, ct);
+            var validationResult = await _valiatorCreate.ValidateAsync(dto, ct);
 
-            return Ok("Гру додано");
+            if (!validationResult.IsValid)
+            {
+                return this.ValidationResponse(validationResult);
+            }
+
+            var response = await _gameService.CreateAsync(dto, _imagesFolder, ct);
+            return this.GetHttpResponse(response);
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateAsync([FromBody] Game game, CancellationToken ct = default)
+        public async Task<IActionResult> UpdateAsync([FromForm] UpdateGameDto dto, CancellationToken ct = default)
         {
-            game.ReleaseDate = game.ReleaseDate.ToUniversalTime();
-            await _gameRepository.UpdateAsync(game, ct);
+            var validationResult = await _valiatorUpdate.ValidateAsync(dto, ct);
 
-            return Ok("Гру додано");
+            if (!validationResult.IsValid)
+            {
+                return this.ValidationResponse(validationResult);
+            }
+
+            var response = await _gameService.UpdateAsync(dto, _imagesFolder, ct);
+            return this.GetHttpResponse(response);
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteAsync([FromBody] Game game, CancellationToken ct = default)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAsync([FromRoute] int id, CancellationToken ct = default)
         {
-            game.ReleaseDate = game.ReleaseDate.ToUniversalTime();
-            await _gameRepository.DeleteAsync(game, ct);
-
-            return Ok("Гру додано");
+            var response = await _gameService.DeleteAsync(id, _imagesFolder, ct);
+            return this.GetHttpResponse(response);
         }
     }
 }
