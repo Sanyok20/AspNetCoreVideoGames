@@ -1,12 +1,12 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using VideoGames.BLL.Services;
 using VideoGames.BLL.Dtos.Game;
 using VideoGames.BLL.Dtos.Pagination;
-using VideoGames.BLL.Services;
 using VideoGames.Extensions;
 using VideoGames.Settings;
 
-namespace SPR521_VideoGames.Controllers
+namespace VideoGames.Controllers
 {
     [ApiController]
     [Route("api/game")]
@@ -73,6 +73,20 @@ namespace SPR521_VideoGames.Controllers
         public async Task<IActionResult> DeleteAsync([FromRoute] int id, CancellationToken ct = default)
         {
             var response = await _gameService.DeleteAsync(id, _imagesFolder, ct);
+            return this.GetHttpResponse(response);
+        }
+
+        [HttpPatch("add-genre")]
+        public async Task<IActionResult> AddGenreAsync([FromQuery] int gameId, [FromQuery] string genreName, CancellationToken ct = default)
+        {
+            var response = await _gameService.AddGenreAsync(gameId, genreName, ct);
+            return this.GetHttpResponse(response);
+        }
+
+        [HttpPatch("remove-genre")]
+        public async Task<IActionResult> RemoveGenreAsync([FromQuery] int gameId, [FromQuery] string genreName, CancellationToken ct = default)
+        {
+            var response = await _gameService.RemoveGenreAsync(gameId, genreName, ct);
             return this.GetHttpResponse(response);
         }
     }

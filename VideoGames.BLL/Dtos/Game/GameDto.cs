@@ -11,5 +11,6 @@
         public string? Image { get; set; }
         public float Rating { get; set; }
         public string? Developer { get; set; }
+        public List<string> Genres { get; set; } = [];
     }
 }
