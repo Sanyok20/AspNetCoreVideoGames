@@ -1,0 +1,363 @@
+.settings-page {
+  width: 100%;
+  min-width: 0;
+  color: #e2e8f0;
+}
+
+/* Заголовок */
+
+.settings-heading {
+  margin-bottom: 28px;
+}
+
+.settings-heading h2 {
+  margin: 0 0 8px;
+  font-size: 25px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.settings-heading p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* Картки */
+
+.settings-card {
+  margin-bottom: 22px;
+  padding: 28px 30px;
+
+  background: #151e2e;
+  border: 1px solid #26344a;
+  border-radius: 16px;
+
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.settings-card-icon {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #243754;
+  border: 1px solid #334a6a;
+  border-radius: 12px;
+  font-size: 21px;
+}
+
+.settings-card-header h3 {
+  margin: 0 0 6px;
+  color: #f8fafc;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.settings-card-header p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Інформація про акаунт */
+
+.settings-account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+
+  padding: 17px 0;
+  border-top: 1px solid #29374c;
+}
+
+.settings-account-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.settings-account-row > div > span {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.settings-account-row strong {
+  color: #f1f5f9;
+  font-size: 14px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.settings-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.settings-status.confirmed {
+  background: rgba(34, 197, 94, 0.1);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.settings-status.unconfirmed {
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Зміна пароля */
+
+.settings-password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 21px;
+  max-width: 520px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.settings-field label {
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.settings-field input {
+  display: block;
+  width: 100%;
+  height: 48px;
+  padding: 0 15px;
+  box-sizing: border-box;
+
+  background: #1c293b;
+  border: 1px solid #34445b;
+  border-radius: 10px;
+
+  color: #f8fafc;
+  font-family: inherit;
+  font-size: 14px;
+
+  outline: none;
+  box-shadow: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.settings-field input::placeholder {
+  color: #718096;
+}
+
+.settings-field input:hover {
+  border-color: #52647f;
+}
+
+.settings-field input:focus {
+  background: #202f43;
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* Прибираємо можливі світлі стилі автозаповнення */
+
+.settings-field input:-webkit-autofill,
+.settings-field input:-webkit-autofill:hover,
+.settings-field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f8fafc;
+  -webkit-box-shadow: 0 0 0 1000px #1c293b inset;
+  caret-color: #f8fafc;
+}
+
+/* Checkbox */
+
+.settings-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: fit-content;
+  color: #a7b4c8;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.settings-checkbox input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+/* Кнопки */
+
+.settings-form-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 3px;
+}
+
+.settings-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 44px;
+  padding: 0 22px;
+
+  background: #2563eb;
+  border: 1px solid #2563eb;
+  border-radius: 9px;
+
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.settings-primary-btn:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  box-shadow: 0 5px 18px rgba(37, 99, 235, 0.2);
+}
+
+/* Logout */
+
+.settings-danger-card {
+  background: #191e2b;
+  border-color: #53333c;
+}
+
+.settings-card-icon.danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.settings-logout-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  padding-top: 22px;
+  border-top: 1px solid #43313e;
+}
+
+.settings-logout-row strong {
+  display: block;
+  color: #f1f5f9;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.settings-logout-row p {
+  margin: 7px 0 0;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.settings-logout-btn {
+  min-height: 43px;
+  padding: 0 24px;
+  flex-shrink: 0;
+
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  border-radius: 9px;
+
+  color: #f87171;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.settings-logout-btn:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+.settings-logout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Повідомлення */
+
+.settings-alert {
+  padding: 13px 16px;
+  margin-bottom: 22px;
+  border-radius: 9px;
+  font-size: 13px;
+}
+
+.settings-alert.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.settings-alert.success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #86efac;
+}
+
+/* Адаптивність */
+
+@media (max-width: 600px) {
+  .settings-card {
+    padding: 22px 18px;
+  }
+
+  .settings-heading h2 {
+    font-size: 22px;
+  }
+
+  .settings-card-header {
+    align-items: flex-start;
+  }
+
+  .settings-account-row,
+  .settings-logout-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settings-logout-btn,
+  .settings-primary-btn {
+    width: 100%;
+  }
+}
