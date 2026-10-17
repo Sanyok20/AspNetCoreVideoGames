@@ -250,6 +250,38 @@ namespace VideoGames.DAL.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("VideoGames.DAL.Entities.UserToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime>("Updated")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserTokens");
+                });
+
             modelBuilder.Entity("GameGenres", b =>
                 {
                     b.HasOne("VideoGames.DAL.Entities.Game", null)
@@ -291,9 +323,25 @@ namespace VideoGames.DAL.Migrations
                     b.Navigation("Developer");
                 });
 
+            modelBuilder.Entity("VideoGames.DAL.Entities.UserToken", b =>
+                {
+                    b.HasOne("VideoGames.DAL.Entities.User", "User")
+                        .WithMany("Tokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("VideoGames.DAL.Entities.Developer", b =>
                 {
                     b.Navigation("Games");
+                });
+
+            modelBuilder.Entity("VideoGames.DAL.Entities.User", b =>
+                {
+                    b.Navigation("Tokens");
                 });
 #pragma warning restore 612, 618
         }

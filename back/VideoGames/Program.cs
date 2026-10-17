@@ -1,18 +1,13 @@
 using FluentValidation;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 using Scalar.AspNetCore;
 using Serilog;
-using VideoGames.BLL.Services;
 using VideoGames.BLL.Settings;
-using VideoGames.BLL.Tools;
 using VideoGames.BLL.Validators.Game;
 using VideoGames.DAL;
-using VideoGames.DAL.Entities;
 using VideoGames.DAL.Initializer;
-using VideoGames.DAL.Repositories;
+using VideoGames.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +16,8 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
+
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -57,21 +54,11 @@ builder.Services.AddAutoMapper(cfg =>
 }, AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
 
-builder.Services.AddScoped<GameRepository>();
-builder.Services.AddScoped<DeveloperRepository>();
-builder.Services.AddScoped<GenreRepository>();
-builder.Services.AddScoped<UserRepository>();
-builder.Services.AddScoped<RoleRepository>();
+builder.Services.AddRepositories();
 
-builder.Services.AddScoped<GameService>();
-builder.Services.AddScoped<FileService>();
-builder.Services.AddScoped<GenreService>();
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<JwtService>();
-builder.Services.AddScoped<RoleService>();
-builder.Services.AddScoped<PasswordHasher<User>>();
-builder.Services.AddScoped<PaginateCollection>();
+builder.Services.AddServices();
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -91,30 +78,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-string storagePath = Path.Combine(builder.Environment.ContentRootPath, "FileStorage");
-
-if (!Directory.Exists(storagePath))
-{
-    Directory.CreateDirectory(storagePath);
-}
-
-string imagesPath = Path.Combine(storagePath, "images");
-
-if (!Directory.Exists(imagesPath))
-{
-    Directory.CreateDirectory(imagesPath);
-}
-
-app.UseStaticFiles(new StaticFileOptions
-{
-    RequestPath = "/images",
-    FileProvider = new PhysicalFileProvider(imagesPath)
-});
+app.AddStaticFiles(app.Environment);
 
 app.UseCors(corsName);
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using VideoGames.DAL;
 using VideoGames.DAL.Entities;
 
 namespace VideoGames.DAL.Repositories
@@ -19,7 +18,7 @@ namespace VideoGames.DAL.Repositories
             return _context.Set<TEntity>();
         }
 
-        public async Task<TEntity?> GetByIdAsync(int id, CancellationToken ct = default)
+        public virtual async Task<TEntity?> GetByIdAsync(int id, CancellationToken ct = default)
         {
             return await _context.Set<TEntity>().FirstOrDefaultAsync(g => g.Id == id, ct);
         }

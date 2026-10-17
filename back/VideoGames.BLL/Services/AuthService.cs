@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using VideoGames.BLL.Services;
+using VideoGames.BLL.Controllers;
 using VideoGames.BLL.Dtos;
 using VideoGames.BLL.Dtos.Auth;
 using VideoGames.BLL.Dtos.User;
@@ -11,13 +13,15 @@ namespace VideoGames.BLL.Services
     {
         private readonly UserRepository _userRepository;
         private readonly JwtService _jwtService;
+        private readonly EmailService _emailService;
         private readonly IMapper _mapper;
 
-        public AuthService(UserRepository userRepository, JwtService jwtService, IMapper mapper)
+        public AuthService(UserRepository userRepository, JwtService jwtService, IMapper mapper, EmailService emailService)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
             _mapper = mapper;
+            _emailService = emailService;
         }
 
         public async Task<ResponseDto> LoginAsync(LoginDto dto, CancellationToken ct = default)
@@ -43,6 +47,22 @@ namespace VideoGames.BLL.Services
             return ResponseDto.Success("Успішний вхід", token);
         }
 
+        public async Task<ResponseDto> RegisterAsync(RegisterDto dto, CancellationToken ct = default)
+        {
+            var user = _mapper.Map<User>(dto);
+
+            await _userRepository.CreateAsync(user, dto.Password, ct);
+            await _userRepository.AddToRoleAsync(user, "user", ct);
+
+            var jwtToken = _jwtService.GenerateAccessToken(user);
+
+            var emailToken = await _jwtService.GenerateEmailConfirmTokenAsync(user, ct);
+
+            await _emailService.SendEmailConfirmMessageAsync(user, emailToken, ct: ct);
+
+            return ResponseDto.Success("Успішна реєстрація", jwtToken);
+        }
+
         public async Task<ResponseDto> ProfileAsync(string token, CancellationToken ct = default)
         {
             try
@@ -64,33 +84,6 @@ namespace VideoGames.BLL.Services
             {
                 return ResponseDto.Error(ex.Message);
             }
-        }
-        public async Task<ResponseDto> RegisterAsync(RegisterDto dto, CancellationToken ct = default)
-        {
-            if (await _userRepository.IsExistsEmailAsync(dto.Email, ct))
-            {
-                return ResponseDto.Error("Користувач з таким поштовим індексом/email вже існує");
-            }
-
-            if (await _userRepository.IsExistsUserNameAsync(dto.UserName, ct))
-            {
-                return ResponseDto.Error("Користувач з таким логіном вже існує");
-            }
-
-            var user = new User
-            {
-                UserName = dto.UserName,
-                NormalizedUserName = dto.UserName.ToUpper(),
-                Email = dto.Email,
-                NormalizedEmail = dto.Email.ToUpper(),
-                EmailConfirmed = true
-            };
-
-            await _userRepository.CreateAsync(user, dto.Password, ct);
-
-            var token = _jwtService.GenerateAccessToken(user);
-
-            return ResponseDto.Success("Успішна реєстрація", token);
         }
     }
 }

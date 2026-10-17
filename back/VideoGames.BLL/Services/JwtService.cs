@@ -1,18 +1,23 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using VideoGames.BLL.Settings;
-using VideoGames.DAL.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
+using VideoGames.BLL.Dtos;
+using VideoGames.BLL.Settings;
+using VideoGames.DAL.Entities;
+using VideoGames.DAL.Repositories;
 
 namespace VideoGames.BLL.Services
 {
     public class JwtService
     {
         private readonly JwtSettings _settings;
+        private readonly UserTokenRepository _userTokenRepository;
+        private readonly UserRepository _userRepository;
 
-        public JwtService(IOptions<JwtSettings> options)
+        public JwtService(IOptions<JwtSettings> options, UserTokenRepository userTokenRepository, UserRepository userRepository)
         {
             _settings = options.Value;
 
@@ -20,20 +25,30 @@ namespace VideoGames.BLL.Services
             {
                 throw new ArgumentNullException("Jwt secret key is null");
             }
+
+            _userTokenRepository = userTokenRepository;
+            _userRepository = userRepository;
         }
 
         public string GenerateAccessToken(User user)
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim("userId", user.Id.ToString()),
+                new Claim("email", user.Email),
+                new Claim("userName", user.UserName)
             };
 
-            foreach (var role in user.Roles)
+            if (user.Roles.Count > 0)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role.Name));
+                foreach (var role in user.Roles)
+                {
+                    claims.Add(new Claim("role", role.Name));
+                }
+            }
+            else
+            {
+                claims.Add(new Claim("role", "user"));
             }
 
             var bytes = Encoding.UTF8.GetBytes(_settings.SecretKey);
@@ -106,6 +121,65 @@ namespace VideoGames.BLL.Services
             bool parseResult = int.TryParse(idValue, out int userId);
 
             return parseResult ? userId : throw new FormatException("UserId incorrect");
+        }
+
+        public string GenerateSecureToken()
+        {
+            var randomBytes = new byte[32];
+
+            using var rnd = RandomNumberGenerator.Create();
+            rnd.GetBytes(randomBytes);
+
+            return Convert.ToBase64String(randomBytes)
+                .Replace("+", "-")
+                .Replace("/", "_")
+                .Replace("=", "");
+        }
+
+        public async Task<string> GenerateEmailConfirmTokenAsync(User user, CancellationToken ct = default)
+        {
+            var secureToken = GenerateSecureToken();
+
+            var token = new UserToken
+            {
+                Token = secureToken,
+                User = user
+            };
+
+            await _userTokenRepository.CreateAsync(token, ct);
+
+            return token.Token;
+        }
+
+        public async Task<ResponseDto> ConfirmEmailAsync(int userId, string token, CancellationToken ct = default)
+        {
+            var user = await _userRepository.GetByIdAsync(userId, ct);
+
+            if (user == null)
+            {
+                return ResponseDto.Error($"Користувач з id '{userId}' не знайдений");
+            }
+
+            var userToken = user.Tokens.FirstOrDefault(ut => ut.Token == token);
+
+            if (userToken == null)
+            {
+                return ResponseDto.Error($"Невалідний токен");
+            }
+
+            if (userToken.Expires < DateTime.UtcNow)
+            {
+                await _userTokenRepository.DeleteAsync(userToken, ct);
+                return ResponseDto.Error($"Невалідний токен");
+            }
+
+            user.EmailConfirmed = true;
+
+            await _userTokenRepository.DeleteAsync(userToken, ct);
+
+            await _userRepository.UpdateAsync(user);
+
+            return ResponseDto.Success("Пошту підтверджено");
         }
     }
 }
