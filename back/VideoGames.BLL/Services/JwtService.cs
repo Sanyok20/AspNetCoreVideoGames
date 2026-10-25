@@ -136,14 +136,16 @@ namespace VideoGames.BLL.Services
                 .Replace("=", "");
         }
 
-        public async Task<string> GenerateEmailConfirmTokenAsync(User user, CancellationToken ct = default)
+        public async Task<string> GenerateEmailConfirmTokenAsync(User user, TokenType type = TokenType.ConfirmEmail, string? newEmail = null, CancellationToken ct = default)
         {
             var secureToken = GenerateSecureToken();
 
             var token = new UserToken
             {
                 Token = secureToken,
-                User = user
+                User = user,
+                Type = type,
+                NewEmail = newEmail
             };
 
             await _userTokenRepository.CreateAsync(token, ct);
@@ -173,13 +175,22 @@ namespace VideoGames.BLL.Services
                 return ResponseDto.Error($"Невалідний токен");
             }
 
+            string responseMessage = "Пошту підтверджено";
+
+            if (userToken.Type == TokenType.ChangeEmail)
+            {
+                user.Email = userToken.NewEmail!;
+                user.NormalizedEmail = userToken.NewEmail!.ToUpper();
+                responseMessage = "Пошту змінено";
+            }
+
             user.EmailConfirmed = true;
 
             await _userTokenRepository.DeleteAsync(userToken, ct);
 
             await _userRepository.UpdateAsync(user);
 
-            return ResponseDto.Success("Пошту підтверджено");
+            return ResponseDto.Success(responseMessage);
         }
     }
 }

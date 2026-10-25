@@ -1,6 +1,6 @@
-﻿using VideoGames.BLL.Controllers;
-using VideoGames.BLL.Dtos;
-using VideoGames.BLL.Services;
+﻿using VideoGames.BLL.Dtos;
+using VideoGames.BLL.Dtos.User;
+using VideoGames.DAL.Entities;
 using VideoGames.DAL.Repositories;
 
 namespace VideoGames.BLL.Services
@@ -46,7 +46,7 @@ namespace VideoGames.BLL.Services
             return ResponseDto.Success($"Користувача видалено з ролі '{roleName}'");
         }
 
-        public async Task<ResponseDto> SendEmailConfrimMessageAsync(string token, CancellationToken ct = default)
+        public async Task<ResponseDto> SendEmailConfrimMessageAsync(string token, ChangeEmailDto? dto = null, TokenType tokenType = TokenType.ConfirmEmail, CancellationToken ct = default)
         {
             int userId = _jwtService.GetUserId(token);
 
@@ -57,11 +57,36 @@ namespace VideoGames.BLL.Services
                 return ResponseDto.Error($"Користувача з id '{userId}' не знайдено");
             }
 
-            string emailToken = await _jwtService.GenerateEmailConfirmTokenAsync(user, ct);
+            string emailToken = await _jwtService.GenerateEmailConfirmTokenAsync(user, newEmail: dto?.Email, type: tokenType, ct: ct);
 
-            await _emailService.SendEmailConfirmMessageAsync(user, emailToken, ct: ct);
+            switch (tokenType)
+            {
+                case TokenType.ConfirmEmail:
+                    await _emailService.SendEmailConfirmMessageAsync(user, emailToken, ct: ct);
+                    break;
+                case TokenType.ChangeEmail:
+                    await _emailService.SendEmailChangeMessageAsync(user, dto!.Email, emailToken, ct: ct);
+                    break;
+            }
+
 
             return ResponseDto.Success("Лист відправлено");
+        }
+
+        public async Task<ResponseDto> ChangeEmailAsync(ChangeEmailDto dto, string jwtToken, CancellationToken ct = default)
+        {
+            var userId = _jwtService.GetUserId(jwtToken);
+
+            var user = await _userRepository.GetByIdAsync(userId, ct);
+
+            if (user == null)
+            {
+                return ResponseDto.Error($"Користувача з id '{userId}' не знайдено");
+            }
+
+            await _userRepository.ChangeEmailAsync(user, dto.Email, ct);
+
+            return ResponseDto.Success("Пошту змінено");
         }
 
         public async Task<ResponseDto> ConfirmEmailAsync(int userId, string token, CancellationToken ct = default)

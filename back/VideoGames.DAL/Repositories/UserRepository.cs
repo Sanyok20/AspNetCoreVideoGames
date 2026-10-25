@@ -48,6 +48,13 @@ namespace VideoGames.DAL.Repositories
             return await Users.AnyAsync(u => u.NormalizedUserName == userName.ToUpper(), ct);
         }
 
+        public async Task ChangeEmailAsync(User user, string newEmail, CancellationToken ct = default)
+        {
+            user.Email = newEmail;
+            user.NormalizedEmail = newEmail.ToUpper();
+
+            await UpdateAsync(user, ct);
+        }
         public async Task CreateAsync(User user, string password, CancellationToken ct = default)
         {
             string passwordHash = _passwordHasher.HashPassword(user, password);
@@ -57,7 +64,7 @@ namespace VideoGames.DAL.Repositories
 
         public bool CheckPassword(User user, string password)
         {
-            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, password);
+            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
 
             return result == PasswordVerificationResult.Success
                 || result == PasswordVerificationResult.SuccessRehashNeeded;
@@ -91,6 +98,17 @@ namespace VideoGames.DAL.Repositories
                 user.Roles = user.Roles.Where(r => r.NormalizedName != roleName.ToUpper()).ToList();
                 await _context.SaveChangesAsync(ct);
             }
+        }
+
+        public async Task<List<User>> GetUsersWithBirthdayTodayAsync(int month, int day, CancellationToken ct = default)
+        {
+            return await _context.Users
+                .Where(u => u.IsSubscribe &&
+                            u.EmailConfirmed &&
+                            u.DateOfBirth.HasValue &&
+                            u.DateOfBirth.Value.Month == month &&
+                            u.DateOfBirth.Value.Day == day)
+                .ToListAsync(ct);
         }
     }
 }

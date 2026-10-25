@@ -1,6 +1,4 @@
-﻿using VideoGames.DAL.Entities;
-
-namespace VideoGames.DAL.Entities
+﻿namespace VideoGames.DAL.Entities
 {
     public class User : BaseEntity
     {
@@ -14,6 +12,8 @@ namespace VideoGames.DAL.Entities
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? Image { get; set; }
+        public bool IsSubscribe { get; set; } = false;
+        public DateTime? DateOfBirth { get; set; }
 
         public List<Role> Roles { get; set; } = [];
         public List<UserToken> Tokens { get; set; } = [];

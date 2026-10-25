@@ -199,6 +199,9 @@ namespace VideoGames.DAL.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("DateOfBirth")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -214,6 +217,9 @@ namespace VideoGames.DAL.Migrations
                     b.Property<string>("Image")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<bool>("IsSubscribe")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("LastName")
                         .HasMaxLength(100)
@@ -264,10 +270,17 @@ namespace VideoGames.DAL.Migrations
                     b.Property<DateTime>("Expires")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("NewEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("Updated")
                         .HasColumnType("timestamp with time zone");

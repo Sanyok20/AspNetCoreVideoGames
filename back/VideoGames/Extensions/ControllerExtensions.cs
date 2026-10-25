@@ -29,5 +29,22 @@ namespace VideoGames.Extensions
 
             return controller.BadRequest(responseDto);
         }
+
+        public static string? GetJwtToken(this ControllerBase controller)
+        {
+            var context = controller.HttpContext;
+            var user = controller.User;
+
+            var authorization = context.Request.Headers.Authorization.First();
+
+            if (user.Identity == null || !user.Identity.IsAuthenticated || authorization == null)
+            {
+                return null;
+            }
+
+            string token = new string(authorization.Skip(7).ToArray());
+
+            return token;
+        }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using VideoGames.BLL.Services;
-using VideoGames.BLL.Controllers;
 using VideoGames.BLL.Dtos;
 using VideoGames.BLL.Dtos.Auth;
 using VideoGames.BLL.Dtos.User;
@@ -56,7 +54,7 @@ namespace VideoGames.BLL.Services
 
             var jwtToken = _jwtService.GenerateAccessToken(user);
 
-            var emailToken = await _jwtService.GenerateEmailConfirmTokenAsync(user, ct);
+            var emailToken = await _jwtService.GenerateEmailConfirmTokenAsync(user, ct: ct);
 
             await _emailService.SendEmailConfirmMessageAsync(user, emailToken, ct: ct);
 
